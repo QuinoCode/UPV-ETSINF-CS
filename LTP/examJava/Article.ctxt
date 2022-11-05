@@ -1,0 +1,23 @@
+#BlueJ class context
+comment0.target=Article
+comment1.params=s\ t
+comment1.target=Article(java.lang.String,\ double)
+comment10.params=a
+comment10.target=int\ compareTo(Article)
+comment2.params=
+comment2.target=java.lang.String\ getId()
+comment3.params=
+comment3.target=double\ getPriceCost()
+comment4.params=
+comment4.target=double\ getTax()
+comment5.params=
+comment5.target=int\ getCategory()
+comment6.params=c
+comment6.target=void\ setCategory(int)
+comment7.params=c
+comment7.target=void\ setPriceCost(double)
+comment8.params=
+comment8.target=double\ getPriceBT()
+comment9.params=
+comment9.target=double\ getPriceAT()
+numComments=11

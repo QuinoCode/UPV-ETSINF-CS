@@ -1,0 +1,11 @@
+#BlueJ class context
+comment0.target=Book
+comment1.params=n\ p\ cat\ t
+comment1.target=Book(java.lang.String,\ double,\ int,\ java.lang.String)
+comment2.params=
+comment2.target=java.lang.String\ getTitle()
+comment3.params=
+comment3.target=double\ getPriceBT()
+comment4.params=a
+comment4.target=int\ compareTo(Article)
+numComments=5

@@ -1,0 +1,11 @@
+#BlueJ class context
+comment0.target=Stationer
+comment1.params=n\ p\ cat\ nm
+comment1.target=Stationer(java.lang.String,\ double,\ int,\ java.lang.String)
+comment2.params=
+comment2.target=java.lang.String\ getName()
+comment3.params=
+comment3.target=double\ getPriceBT()
+comment4.params=a
+comment4.target=int\ compareTo(Article)
+numComments=5

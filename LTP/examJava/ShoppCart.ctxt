@@ -1,0 +1,9 @@
+#BlueJ class context
+comment0.target=ShoppCart
+comment1.params=
+comment1.target=ShoppCart()
+comment2.params=
+comment2.target=double\ getTotal()
+comment3.params=qt
+comment3.target=void\ updateAmount(double)
+numComments=4

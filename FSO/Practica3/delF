@@ -1,0 +1,11 @@
+if test -s $1
+then    
+    if test -f $1
+    then 
+        rm $1
+    else
+        echo "No se trata de un fichero sino de un directorio"
+    fi
+else 
+    echo "El fichero indicado no existe o está vacío"
+fi

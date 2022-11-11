@@ -1,0 +1,11 @@
+#!/bin/bash
+#system_processess
+#programa que usa inf_process para mostrar los datos de TODOS los procesos del sistema
+
+nProcessess=$(ls -d /proc/[1-9]* |wc -l) 
+
+#cuenta cuantos procesos hay en el sistema
+for pid in /proc/[1-9]*
+do
+./inf_processTruco $pid
+done

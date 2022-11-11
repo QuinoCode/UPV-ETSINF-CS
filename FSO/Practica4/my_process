@@ -1,0 +1,9 @@
+# !/bin/bash
+# my_processess
+process=$(ps u | grep $USER | wc -l)
+if test $process -gt $1
+then
+    echo "More than $1 user processess active"
+else
+    echo "Equal or less than $1 user processess active"
+fi

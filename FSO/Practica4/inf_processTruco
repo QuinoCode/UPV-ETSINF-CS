@@ -1,0 +1,19 @@
+#! /bin/bash
+# ShellScript que me de la información de un proceso
+
+pid=$(awk '/^Pid:/ {print $2}' $1/status)
+
+ppid=$(awk '/PPid:/ {print $2}' $1/status)
+
+status=$(awk '/State/ {print $2}' $1/status)
+
+cmdline=$(cat $1/cmdline)
+echo -n -e "PID\tPPID\tESTADO\tCOMANDO\n"
+echo -n  $pid
+echo -n -e "\t"
+echo -n  $ppid
+echo -n -e "\t"
+echo -n $status
+echo -n -e "\t"
+echo  $cmdline
+

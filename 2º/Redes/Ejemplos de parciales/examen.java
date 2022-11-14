@@ -1,3 +1,5 @@
+//EL objetivo de este exámen es mandarle un numero al ordenador del profesor de prácticas y este os devuelve
+//si habéis acercado el número y si no te dirán si es mayor o menor y tienes que ser capaz de recibir ese examen
 import java.net.*;
 import java.util.*;
 

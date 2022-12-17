@@ -27,13 +27,11 @@ public class calculadora
                 Suma cliente = new Suma(s);
                 cliente.start();
                 System.out.println(entrada.nextLine());
-                //System.out.println("El resultado de sumar " + cliente.sumando1 + "+" + cliente.sumando2 + "=" + cliente.resultado);
             } else if (respuesta.equalsIgnoreCase("RESTA")) 
             {
                 Resta cliente = new Resta(s);
                 cliente.start();
                 System.out.println(entrada.nextLine());
-                //System.out.println("El resultado de restar " + cliente.sumando1 + "+" + cliente.sumando2 + "=" + cliente.resultado);
             } else 
             {
                 System.out.println("No es una operación valida, conectate de nuevo");

@@ -15,8 +15,8 @@ SUMA
 4
 [Respuesta del servidor:] El resultado de la operación 4 + 4 = 8
 ### Resta
-nc localhost 7777
-RESTA
-12
-4 
+nc localhost 7777 \n
+RESTA \n
+12 \n
+4  \n
 [Respuesta del servidor:] El resultado de la operación 12 - 4 = 8

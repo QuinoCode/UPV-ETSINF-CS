@@ -12,7 +12,6 @@ public class calculator {
         Scanner entrada = new Scanner(s.getInputStream());
         Operation client = new Operation(s);
         client.start();
-        System.out.println(entrada.nextLine());
       }
     } catch (IOException e) {
       System.out.println(e);

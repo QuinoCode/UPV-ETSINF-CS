@@ -1,5 +1,5 @@
 import java.net.*;
-import java.util.Scanner;
+import java.util.*;
 import java.io.*;
 
 public class Operation extends Thread{
@@ -18,6 +18,7 @@ public class Operation extends Thread{
       Scanner entrada = new Scanner(client.getInputStream());
       PrintWriter salida = new PrintWriter(client.getOutputStream(), false);
       String respuesta = entrada.nextLine();
+      System.out.println("Una " + respuesta + " ha sido solicitada");
       if (respuesta.equalsIgnoreCase("SUMA"))
       {
         int sumando1 = entrada.nextInt();
@@ -38,7 +39,18 @@ public class Operation extends Thread{
           client.close();
         } else { System.out.println("La operación introducida no es valida, vuelva a conectarse"); }
     } catch (IOException e) { System.out.println(e); }
+    //Esto de aquí abajo no lo pide, pero por dejarlo niquelado.
+    catch (InputMismatchException e)
+    {
+      String mensaje = "Sólo se pueden hacer operaciones con números, vuelva a conectarse.";
+      try {
+        PrintWriter salida = new PrintWriter(client.getOutputStream(), false);
+        salida.printf(mensaje);
+        salida.flush();
+      } catch (IOException ex) {
+        System.out.println(ex);
+      }
+    }
   }
-    
 }
 

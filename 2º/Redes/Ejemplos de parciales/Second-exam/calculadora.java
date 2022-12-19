@@ -1,11 +1,3 @@
- 
-/**
- * Write a description of class calculadora here.
- *
- * @author (your name)
- * @version (a version number or a date)
- */
- 
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -26,12 +18,10 @@ public class calculadora
             {
                 Suma cliente = new Suma(s);
                 cliente.start();
-                System.out.println(entrada.nextLine());
             } else if (respuesta.equalsIgnoreCase("RESTA")) 
             {
                 Resta cliente = new Resta(s);
                 cliente.start();
-                System.out.println(entrada.nextLine());
             } else 
             {
                 System.out.println("No es una operación valida, conectate de nuevo");

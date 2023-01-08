@@ -14,14 +14,18 @@ public class HTTPServidor {
         System.out.println("Un cliente se ha conectado con el servidor");
         Scanner entrada = new Scanner(socket.getInputStream());
         PrintWriter salida = new PrintWriter(socket.getOutputStream(), false);
+        // Las tres líneas que pide en el enunciado (creo que es para que sepa como "displayear" el contenido)       
+        salida.printf("HTTP/1.0 200 OK\r\n");
+        salida.printf("Content-Type: text/plain\r\n");
+        salida.printf("\r\n");
+        
         String respuesta = entrada.nextLine();
-        //Esta condición funciona pero siempre he usado !respuesta.startsWith(".");Preguntar al profesor
+        // Creo también que solo hay que enviar las cabeceras, es decir, la petición, solo las cabeceras están hasta la primera ocurrecia de una línea en blanco
         while (!respuesta.equals("")) 
         {
-          salida.printf(respuesta);
-          System.out.println(respuesta);
-          respuesta = entrada.nextLine();
+          salida.println(respuesta);
           salida.flush();
+          respuesta = entrada.nextLine();
         }
         socket.close();
       } 

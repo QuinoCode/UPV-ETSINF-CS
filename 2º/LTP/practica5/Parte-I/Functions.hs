@@ -34,9 +34,7 @@ module Functions where
   -- Ordena una lista ascendentemente 
   iSort :: [Int] -> [Int]
   iSort [elem] = [elem]
-  iSort (elem1:elem2:xs)
-    | elem1 > elem2 = ins elem1 (iSort (elem2:xs))
-    | otherwise =(elem1:iSort (elem2:xs))
+  iSort (elem1:elem2:xs) = ins elem1 (iSort (elem2:xs))
 
   -- Devuelve una lista con el doble de los enteros de una lista dada
   doubleAll :: [Int] -> [Int]

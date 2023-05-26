@@ -1,0 +1,111 @@
+### ESTRUCTURA DE COMPUTADORES (ETS Eng. Inf.)
+##  
+## marzo de 2014
+##
+## PR�CTICA 13: SINCRONIZACI�N POR INTERRUPCIONES
+##
+## C�digo inicial del manejador
+
+
+##############################################################
+##              �REA DE DATOS DEL MANEJADOR                 ##
+##############################################################
+
+			.kdata
+var1:	.word 0xFFFFFFFF
+contexto:	.space 16
+
+#############################################################
+##                  C�DIGO DEL MANEJADOR                   ##
+#############################################################
+
+          .ktext 0x80000080
+
+    ## Preserva el contexto del programa de usuario
+    ## (nada de momento)
+    
+    .set noat
+    sw $at, 0($k1)
+    .set at
+    
+    sw $t0, 4($k1)
+    sw $a0, 8($k1)
+    sw $v0, 12($k1)
+    // Más tarde debería no usar ningún registro que no esté aquí, pero bueno lo he hecho porque lo hice y me enteré después, es lo que hay
+
+
+    ## Identifica y trata excepciones
+   
+   mfc0 $k0, $14 // Devuelve la dirección de retorno en $k0 donde ha de estar para manejarse bien, $14 es donde se guarda al saltar la excepción
+
+   mfc0 $t0, $13 
+   andi $t1, $t0, 0x3C
+   bne $t1, $zero, retexc // Estas 3 últimas líneas sirven para traer el registro de causa, decodificarlo para saber si la excepción es una interrupción, y en caso de no serlo se finaliza con un salto puesto que esto solo trata interrupciones
+
+   andi $t1, $t0, 0x1400// Mascara para que solo tenga a 1 los bits IP0 e IP2 (en caso de que esten a 1)
+   li $t2, 0x400
+   beq $t1, $t2, int0
+   li $t2, 0x1000
+   beq $t1, $t2, int2
+
+    ### Tratamiento
+    int0:
+        li $v0, 11
+        li $a0, '*'
+        syscall
+    
+    ## Estas dos líneas son pura butanería, sobreescribe los dos registros para que el programa de usuario pierda el contexto pues se estaban usando, como $t0 tiene un número negativo el bucle que tenía 100000 ahora calcula que es menor que 0 y finaliza (son líneas del profesor, no puro invent mio)
+
+    la $t0, 0xffff0000
+    lbu $t1, 4($t0)
+    j retexc
+
+  int2:
+        la $t0, 0xffff0010
+        li $t1, 1
+        sb $t1, 0($t0)
+   li $v0, 11
+   li $a0, 'G'
+   syscall
+
+    ## Restaura el contexto
+   retexc: 
+        .set noat
+        lw $at, 0($k1)
+      .set at 
+        lw $t0, 4($k1)
+        lw $a0, 8($k1)
+        lw $v0, 12($k1)
+
+    ## Restaura el modo usuario y vuelve al programa
+    ## (falta algo)
+	rfe
+	jr $k0 
+
+#############################################################
+##                    C�DIGO DE INICIO                     ##
+#############################################################
+
+          .text
+          .globl __start 
+__start: 
+    ## C�digo de inicio
+    la $k1, contexto // Guarda el contexto de los registros de usuario (para que no se sobreescriban en el Kernel)
+
+    la $t0, 0xFFFF0000
+    li $t1, 2 // El dos es el codigo para habilitar interrupciones de teclado EN EL PROCESADOR 
+    sb $t1, 0($t0)
+    li $t1, 0x503 //Esto pone IM_0 a 1, (interrupciones de teclado Cp0), Ku (modo usuario) y IE (Interruption Enable) a 1 en el coprocesador
+    mtc0 $t1, $12 // Registro del coprocesador que se encarga de habilitar interrupciones etc
+
+    la $t0, 0xffff0010 //Interfaz del reloj, linea de interrupción 2  
+    li $t1, 1
+    sb $t1, 0($t0)
+
+    ## Salto al programa de usuario
+	jal main
+
+    ## C�digo de terminaci�n
+	li $v0, 10
+	syscall	 # Funci�n exit
+

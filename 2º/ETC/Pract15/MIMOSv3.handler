@@ -1,0 +1,328 @@
+### ESTRUCTURA Y TECNOLOG�A DE COMPUTADORES II (ETISINF)
+###  
+###
+### PR�CTICA 15: LLAMADAS AL SISTEMA II
+###
+### MANEJADOR MiMoS v.3 (material de partida para la pr�ctica)
+
+
+
+
+##############################################################
+##              �REA DE DATOS DEL MANEJADOR                 ##
+##############################################################
+
+		.kdata
+
+		## Contexto del proceso principal
+
+salvareg:		.word 0,0,0	# aqu� se guardan $at, $t1 y $t0
+dirret:		.word 0		# aqu� se guarda la direcci�n de retorno
+
+		## Estado del proceso principal
+
+		listo	 = 0		# Posibles estados del proceso
+		espera_wait_time = 1
+		espera_read_char = 2
+		espera_print_char = 3
+
+
+estado:		.word listo		# Estado del proceso 
+					# (inicialmente, est� listo)
+
+		## Variables para el reloj
+segundos:	.word 0
+despertador:	.word 0
+
+		## Variables para el teclado
+
+
+		## Variables para la consola
+
+
+#############################################################
+##           COMIENZA EL C�DIGO DEL MANEJADOR              ##
+#############################################################
+
+          .ktext 0x80000080
+
+## 
+## $eti: j $eti  # <- Normalmente, esta l�nea es un comentario
+
+
+## Salvar contexto
+
+	.set noat
+	sw $at,0($k1)	      	# Salvo $at
+	.set at
+	sw $t0,4($k1)		# Salvo $t0. Lo utilizaremos para direcciones
+	sw $t1,8($k1)		# Salvo $t1. Lo utilizaremos para datos
+
+## An�lisis de causa de excepci�n
+
+	mfc0 $k0,$13		# Copio registro de causa
+	andi $t0,$k0, 0x003c	# A�slo el c�digo de causa
+	beq $t0,$zero,interrupcion	# Interrupci�n hardware?  
+	li $t1, 0x20		# Llamada syscall? 
+	beq $t1, $t0, llamada 
+
+	b retexc			# Ignoro cualquier otra causa   
+
+#############################################################
+##             TRATAMIENTO DE INTERRUPCIONES               ##
+#############################################################
+
+interrupcion:      
+
+## Preparo direcci�n de retorno (s�lo si es el proceso principal)
+
+	lw $t0,estado
+	li $t1,listo
+	bne $t0,$t1,$L1
+	mfc0 $t0, $14		# EPC
+	sw $t0, dirret
+
+## An�lisis de interrupciones pendientes
+
+$L1:	andi $t0, $k0, 0x1000	# int2 pendiente?
+	bne  $t0, $zero, int2
+	andi $t0, $k0, 0x800		# int1 pendiente?
+	bne  $t0, $zero, int1
+	andi $t0, $k0, 0x400		# int0 pendiente?
+	bne  $t0, $zero, int0
+	b retexc			# interrupci�n esp�rea
+
+#-------------------------------------------------------------
+
+## Tratamiento de la interrupci�n de RELOJ
+
+int2:
+
+	li $t0, 0xffff0010
+	li $t1,1
+	sb $t1, 0($t0)		# CANCELO interrupci�n en el HW del reloj
+
+	lw $t1,segundos
+	addi $t1,$t1,1
+	sw $t1,segundos		# incremento segundos
+
+	lw $t0,estado		# si el proceso no espera reloj, ya he acabado
+	li $t1,espera_wait_time
+	bne $t0,$t1,retexc
+
+	lw $t0,despertador 		# despertamos el proceso?
+	lw $t1,segundos
+	bne $t0,$t1,retexc		# NO: mantengo el estado
+	li $t1,listo			# S�: (segundos = despertador)
+	sw $t1,estado		# estado proceso = listo
+	b retexc			# fin
+
+## Tratamiento de la interrupci�n de TECLADO
+
+int0:
+ la $t0, estado
+ lb $t0, 0($t0)
+ li $t1, 2 //esperando_leer
+ bne $t0, $t1, saltar //si no esta esperando leer, no hago nada
+ 
+ //Cargo el carácter que se ha escrito en $t1
+ la $t0, 0xffff0000
+ lb $a0, 4($t0)
+ 
+ //inhibir interrupciones 
+ li $t1, 0
+ sb $t1, 0($t0)
+ 
+ //cambio el estado a listo
+ la $t0, estado
+ li $t1, 0
+ sb $t1, 0($t0)
+ 
+ saltar:
+	b retexc		# fin
+
+## Tratamiento de la interrupci�n de CONSOLA
+
+int1:
+ la $t0, estado
+ lb $t0, 0($t0)
+ la $t1, 3 //esperando_escribir
+
+ bne $t0, $t1, saltar2 //si no esta esperando a escribir, no hago nada
+ 
+la $t0, 0xffff0008 
+sb $a0, 4($t0) //escribo el carácter en la consola
+
+la $t0, 0xffff0008
+li $t1, 0
+sb $t1, 0($t0) //inhibir interrupciones
+
+li $t1, 0
+sb $t1, estado
+ 
+ 
+saltar2:
+	b retexc		# fin
+
+
+#############################################################
+##                    LLAMADAS AL SISTEMA                  ##
+#############################################################
+
+llamada:
+
+## Preparo direcci�n de retorno
+
+	mfc0 $k0, $14		# EPC
+	addi $k0,$k0,4
+	sw $k0, dirret
+
+## Selecciono la llamada
+
+	li $t1,11			# print_char?
+	beq $t1,$v0,print_char
+	li $t1,12			# read_char?
+	beq $t1,$v0,read_char
+	li $t1,90			# get_version?
+	beq $t1,$v0,get_version
+	li $t1,91			# get_time?
+	beq $t1,$v0,get_time
+	li $t1,92			# wait_time?
+	beq $t1,$v0,wait_time
+	b retexc			# Funci�n no implementada
+
+#---------------------------------------------------------------
+
+###### PRINT_CHAR (Servicio 11)
+
+print_char:
+	li $t0, 0xffff0008
+	li $t1, 2
+	sb $t1, 0($t0)		
+	
+	la $t0, estado
+	li $t1, 3
+	sb $t1, 0($t0)
+	
+	b retexc
+	
+
+###### READ_CHAR (Servicio 12)
+
+read_char:
+	# Por implementar
+	// Habilitadas las interrupciones de teclado
+	la $t0, 0xffff0000
+	li $t1, 2
+	sb $t1, 0($t0)
+	
+	//Poner el estado en esperando leer
+	
+	la $t0, estado
+	li $t1, 2
+	sb $t1, 0($t0)
+	
+	b retexc
+
+
+###### GET_VERSION (Servicio 90)
+
+get_version:
+	li $v0,3
+	b retexc
+
+
+###### GET_TIME (Servicio 91)
+
+get_time:
+ la $t0, segundos
+	lw $v0, 0($t0)
+	b retexc
+
+###### WAIT_TIME (Servicio 92)
+
+wait_time:
+	lw $t0,segundos
+	add $t0,$t0,$a0
+	sw $t0,despertador
+
+	li $t0,espera_wait_time
+	sw $t0,estado
+	b retexc
+
+
+#############################################################
+##             CONMUTACI�N Y FIN DE MANEJADOR              ##
+#############################################################
+
+retexc:
+
+## Conmutaci�n de procesos
+
+	lw $t0,estado
+	li $t1,listo
+	beq $t0,$t1,$L2		# Si (estado = listo), volver al proceso principal
+
+	la $k0,proceso_ocioso
+	b $L3				# en otro caso, volver a proceso ocioso
+         
+$L2:	lw $k0,dirret		# (en dirret est� la direcci�n de retorno del 
+					#  proceso principal)
+
+## Fijar contexto
+
+$L3:	lw $t1, 8($k1)		# Restauro $t1
+	lw $t0, 4($k1)		# Restauro $t0
+	.set noat
+	lw $at, 0($k1)		# Restauro $at
+	.set at
+	rfe			# restaurar bits KU/IE
+	jr $k0
+
+##############################################################
+
+
+
+###################################################################
+##                       C�DIGO DE INICIO                        ##
+###################################################################
+
+          .text
+          .globl __start 
+__start: 
+
+## Preparo las interfaces de los perif�ricos
+
+	li $t0, 0xffff0000
+	sb $zero, 0($t0)		# inhibo interrupci�n en el HW del teclado
+
+	li $t0, 0xffff0008
+	sb $zero, 0($t0)		# inhibo interrupci�n en el HW de la consola
+
+	li $t0, 0xffff0010
+	li $t1, 1
+	sb $t1, 0($t0)		# inhibo interrupci�n en el HW del reloj
+
+## Preparo el registro de estado del coprocesador y fijo modo usuario
+
+	mfc0 $t0, $12
+	ori $t0, $0, 0x0703	# Interrupciones habilitadas
+	mtc0 $t0, $12
+
+## Salto al programa de usuario
+
+	la $k1, salvareg		# $k1 tendr� la direcci�n de la zona para salvar reg.
+	jal main
+
+## Shutdown
+
+	li $v0, 10
+	syscall			# syscall 10 (exit)
+
+
+###################################################################
+##                  PROCESO OCIOSO DEL SISTEMA                   ##
+###################################################################
+
+proceso_ocioso: # proceso ocioso del sistema
+	b proceso_ocioso
